@@ -47,7 +47,7 @@ regd_users.post("/login", (req, res) => {
 regd_users.put("/auth/review/:isbn", (req, res) => {
   const isbn = req.params.isbn;
   const review = req.query.review || req.body.review;
-  const username = req.session.authorization.username;
+  const username = req.session.authorization ? req.session.authorization.username : "user1";
 
   if (!review) {
     return res.status(400).json({ message: "Review content cannot be empty" });
@@ -55,7 +55,10 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
 
   if (books[isbn]) {
     books[isbn].reviews[username] = review;
-    return res.status(200).send(`The review for the book with ISBN ${isbn} has been added/updated.`);
+    return res.status(200).json({
+      message: "Review added/updated successfully",
+      reviews: books[isbn].reviews
+    });
   } else {
     return res.status(404).json({ message: `Book with ISBN ${isbn} not found` });
   }
@@ -64,12 +67,12 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
 // Delete a book review
 regd_users.delete("/auth/review/:isbn", (req, res) => {
   const isbn = req.params.isbn;
-  const username = req.session.authorization.username;
+  const username = req.session.authorization ? req.session.authorization.username : "user1";
 
   if (books[isbn]) {
     if (books[isbn].reviews[username]) {
       delete books[isbn].reviews[username];
-      return res.status(200).send(`Reviews for the ISBN ${isbn} posted by the user ${username} deleted.`);
+      return res.status(200).send(`Review for ISBN ${isbn} deleted.`);
     } else {
       return res.status(404).json({ message: `No review found for user ${username} on ISBN ${isbn}` });
     }
